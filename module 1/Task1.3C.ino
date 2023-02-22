@@ -1,62 +1,49 @@
-int sensorState = 0;
-int buzzer = 7;  // the pin that the buzzer is atteched to
-#define trigPin 2                                   // Pin 12 trigger output
-#define echoPin 3                                   // Pin 2 Echo input
+const uint8_t LedPin1 = 8;
+const uint8_t LedPin2 = 9;
+const uint8_t PIR1 = 2;
+const uint8_t PIR2 = 3;
 
-int motionState = 0;
-int UltraSonicState = 0;
-
-// the time the pulse was sent
-volatile long ultrasonic_echo_start = 0;
+uint8_t PIRstate1 = LOW;
+uint8_t PIRstate2 = LOW;
 
 void setup()
 {
-  pinMode(trigPin, OUTPUT);                           // Trigger pin set to output
-  pinMode(echoPin, INPUT);                            // Echo pin set to input
-  pinMode(12, INPUT);
-  pinMode(13, OUTPUT);
-  Serial.begin(9600);
+    pinMode(LedPin1, OUTPUT);
+    pinMode(PIR1, INPUT);
+    pinMode(LedPin2, OUTPUT);
+    pinMode(PIR2, INPUT);
 
-   
-attachInterrupt(digitalPinToInterrupt(12), motion, HIGH);  //Fires motion when sensor rises from 0 to 1
-attachInterrupt(digitalPinToInterrupt(echoPin), echo_interrupt, HIGH);  // Attach interrupt to the sensor echo input
+    Serial.begin(9600);
+
+    attachInterrupt(digitalPinToInterrupt(PIR1), PIR1MotionDetected, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(PIR2), PIR2MotionDetected, CHANGE);
 }
 
 void loop()
 {
- /* if (sensorState == HIGH) {
-  digitalWrite(13, HIGH);
-  Serial.println("Sensor activated!");
-} 
-  else {
-  digitalWrite(13, LOW);
-}*/
- delay(2000);
-
 }
 
-void motion(){
-  motionState = HIGH;
-  Serial.println("Motion detected!");
-  digitalWrite(buzzer, HIGH);
-  //noTone(buzzer);     // Stop sound...
-  Serial.println("Buzzed!");
-}
-
-void echo_interrupt()
+void PIR1MotionDetected()
 {
-  Serial.println("UltraSonic Sensor activated!");
-    if(UltraSonicState = HIGH){
-      digitalWrite(trigPin, HIGH);
-    delayMicroseconds(5000);     
-    ultrasonic_echo_start = micros(); 
-    long distance = (micros() - ultrasonic_echo_start) / 5;
-         Serial.println(distance);
-         ultrasonic_echo_start = 0;
-         digitalWrite(13, HIGH);
-         delay(1000);
-         digitalWrite(13, LOW); 
-         Serial.println("Blinked!");
-       digitalWrite(trigPin, LOW);
-    }    
- }
+    MotionDetected(PIR1, PIRstate1, LedPin1, "PIR1");
+}
+
+void PIR2MotionDetected()
+{
+    MotionDetected(PIR2, PIRstate2, LedPin2, "PIR2");
+}
+
+void MotionDetected(const uint8_t &input, uint8_t &state, const uint8_t &output, const String &device)
+{
+    state = digitalRead(input);
+    if (state)
+    {
+        digitalWrite(output, HIGH);
+        Serial.println("Motion Detected On " + device);
+    }
+    else
+    {
+        digitalWrite(output, LOW);
+        Serial.println("No Motion Detected On " + device);
+    }
+}
